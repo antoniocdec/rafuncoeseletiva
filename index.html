@@ -2,20 +2,21 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Função Afim AR (corrigido)</title>
+<title>Função Afim AR - HIRO</title>
 
 <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
 
 <style>
 body { margin: 0; overflow: hidden; }
-#info {
+#ui {
   position: fixed;
-  bottom: 10px;
+  top: 10px;
   left: 10px;
   background: white;
-  padding: 8px;
+  padding: 10px;
   font-family: Arial;
+  border-radius: 8px;
   z-index: 10;
 }
 </style>
@@ -23,7 +24,11 @@ body { margin: 0; overflow: hidden; }
 
 <body>
 
-<div id="info">Toque no plano (hiro marker)</div>
+<div id="ui">
+<b>Função Afim em AR</b><br>
+Clique 2 pontos no marcador
+<br><span id="eq">f(x)=?</span>
+</div>
 
 <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
 
@@ -33,15 +38,15 @@ body { margin: 0; overflow: hidden; }
     <a-plane rotation="-90 0 0" width="5" height="5" color="#eee"></a-plane>
 
     <!-- eixos -->
-    <a-entity line="start: -2.5 0 0; end: 2.5 0 0; color: black"></a-entity>
-    <a-entity line="start: 0 0 -2.5; end: 0 0 2.5; color: black"></a-entity>
+    <a-entity line="start: -2.5 0 0; end: 2.5 0 0; color: red"></a-entity>
+    <a-entity line="start: 0 0 -2.5; end: 0 0 2.5; color: green"></a-entity>
 
     <!-- pontos -->
-    <a-sphere id="p1" radius="0.08" color="red" visible="false"></a-sphere>
-    <a-sphere id="p2" radius="0.08" color="red" visible="false"></a-sphere>
+    <a-sphere id="p1" radius="0.08" color="blue" visible="false"></a-sphere>
+    <a-sphere id="p2" radius="0.08" color="blue" visible="false"></a-sphere>
 
     <!-- reta -->
-    <a-entity id="reta"></a-entity>
+    <a-entity id="linha"></a-entity>
 
   </a-marker>
 
@@ -55,53 +60,60 @@ let pontos = [];
 
 const p1 = document.querySelector("#p1");
 const p2 = document.querySelector("#p2");
-const reta = document.querySelector("#reta");
-const info = document.getElementById("info");
+const linha = document.querySelector("#linha");
+const eq = document.getElementById("eq");
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", () => {
 
-    if (pontos.length >= 2) {
-        pontos = [];
-        p1.setAttribute("visible", false);
-        p2.setAttribute("visible", false);
-        reta.setAttribute("line", "start: 0 0 0; end: 0 0 0");
-        info.innerHTML = "Toque no plano (hiro)";
-        return;
-    }
+  if (pontos.length >= 2) {
+    pontos = [];
+    p1.setAttribute("visible", false);
+    p2.setAttribute("visible", false);
+    linha.setAttribute("line", "start: 0 0 0; end: 0 0 0");
+    eq.innerHTML = "f(x)=?";
+    return;
+  }
 
-    // coordenadas simuladas no plano AR (-2 a 2)
-    const x = (Math.random() * 4 - 2);
-    const y = (Math.random() * 4 - 2);
+  // simula clique no plano AR (-2 a 2)
+  const x = (Math.random() * 4 - 2);
+  const y = (Math.random() * 4 - 2);
 
-    pontos.push({x, y});
+  pontos.push({x, y});
 
-    if (pontos.length === 1) {
-        p1.setAttribute("position", `${x} 0 ${y}`);
-        p1.setAttribute("visible", true);
-    }
+  if (pontos.length === 1) {
+    p1.setAttribute("position", `${x} 0 ${y}`);
+    p1.setAttribute("visible", true);
+  }
 
-    if (pontos.length === 2) {
-        p2.setAttribute("position", `${x} 0 ${y}`);
-        p2.setAttribute("visible", true);
-        desenhar();
-    }
+  if (pontos.length === 2) {
+    p2.setAttribute("position", `${x} 0 ${y}`);
+    p2.setAttribute("visible", true);
+    desenhar();
+  }
+
 });
 
 function desenhar() {
 
-    const A = pontos[0];
-    const B = pontos[1];
+  const A = pontos[0];
+  const B = pontos[1];
 
-    const a = (B.y - A.y) / (B.x - A.x);
-    const b = A.y - a * A.x;
+  if (B.x === A.x) {
+    eq.innerHTML = "Reta vertical: x = " + A.x.toFixed(2);
+    return;
+  }
 
-    reta.setAttribute("line", {
-        start: `-2 0 ${a * (-2) + b}`,
-        end: `2 0 ${a * (2) + b}`,
-        color: "blue"
-    });
+  const a = (B.y - A.y) / (B.x - A.x);
+  const b = A.y - a * A.x;
 
-    info.innerHTML = `f(x) = ${a.toFixed(2)}x + ${b.toFixed(2)}`;
+  linha.setAttribute("line", {
+    start: `-2 0 ${a*(-2)+b}`,
+    end: `2 0 ${a*(2)+b}`,
+    color: "blue"
+  });
+
+  eq.innerHTML =
+    `f(x) = ${a.toFixed(2)}x + ${b.toFixed(2)}`;
 }
 
 </script>
